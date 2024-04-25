@@ -150,7 +150,7 @@ func main() {
 
 		// check gozarersh
 		d := page.MustEvaluate(rod.Eval(`() => {
-			if(document.querySelector("#myModal4 > div > div > div.modal-body.h4.text-dark > form > div:nth-child(2) > div > div").innerText.search("موفقیت")>0){
+			if(document.querySelector("#myModal4 > div > div > div.modal-body.h4.text-dark > form > div:nth-child(2) > div > div").innerText.search("ثبت شد")>0 || document.querySelector("#myModal4 > div > div > div.modal-body.h4.text-dark > form > div:nth-child(2) > div > div").innerText.search("موفقیت")>0){
 				return true
 			}else{
 				return false

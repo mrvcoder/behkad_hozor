@@ -1,8 +1,6 @@
 package main
 
 import (
-	"context"
-	"errors"
 	"fmt"
 	"time"
 
@@ -59,21 +57,19 @@ func CloseBrowser(browser *rod.Browser) {
 func Brows(myurl string, browser *rod.Browser, page *rod.Page) *rod.Page {
 
 	page.MustSetExtraHeaders("User-Agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/115.0.0.0 Safari/537.36")
+	// Eval js on the page
 
-	err := rod.Try(func() {
-		page.Navigate(myurl)
-		// Eval js on the page
-		page.Timeout(time.Duration(10) * time.Second)
-		Delay(time.Duration(10))
-	})
-	if errors.Is(err, context.DeadlineExceeded) && timeout_errors_counts < *max_timeout_counts {
-		gologger.Warning().Msg("timeout error")
+	err := page.Timeout(time.Duration(10) * time.Second).Navigate(myurl)
+	Delay(time.Duration(10))
+
+	if err != nil && timeout_errors_counts < *max_timeout_counts {
+		gologger.Warning().Msg("Error in loading Behkad website ! ")
 		gologger.Info().Msg("Trying again ...")
 		Delay(time.Duration(15))
 		timeout_errors_counts += 1
 		Brows(myurl, browser, page)
 	} else if err != nil {
-		gologger.Fatal().Msg("other types of error")
+		gologger.Fatal().Msg("max retry exceed ! exiting...")
 		fmt.Println(err.Error())
 	}
 	// Eval js on the page
