@@ -3,18 +3,16 @@ module behkard_hozor
 go 1.21.3
 
 require (
-	github.com/PuerkitoBio/goquery v1.9.1
 	github.com/go-rod/rod v0.115.0
+	github.com/jszwec/csvutil v1.10.0
 	github.com/projectdiscovery/gologger v1.1.12
 )
 
 require (
 	github.com/andybalholm/brotli v1.0.6 // indirect
-	github.com/andybalholm/cascadia v1.3.2 // indirect
 	github.com/dsnet/compress v0.0.2-0.20210315054119-f66993602bf5 // indirect
 	github.com/golang/snappy v0.0.4 // indirect
 	github.com/json-iterator/go v1.1.12 // indirect
-	github.com/jszwec/csvutil v1.10.0 // indirect
 	github.com/klauspost/compress v1.11.4 // indirect
 	github.com/klauspost/pgzip v1.2.5 // indirect
 	github.com/logrusorgru/aurora v2.0.3+incompatible // indirect
@@ -30,6 +28,5 @@ require (
 	github.com/ysmood/got v0.34.1 // indirect
 	github.com/ysmood/gson v0.7.3 // indirect
 	github.com/ysmood/leakless v0.8.0 // indirect
-	golang.org/x/net v0.21.0 // indirect
 	gopkg.in/djherbis/times.v1 v1.3.0 // indirect
 )
