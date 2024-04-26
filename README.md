@@ -11,7 +11,7 @@
 توجه کنید که توسط برنامه اکسل ادیت نزنید !
 
 ```
-./behkard_hozor -latitude 0.00 -longitude 0.00 -code_collage 00000000 -code_meli 000000 -address "آدرس محل کارآموزی"
+./behkad_linux -latitude 0.00 -longitude 0.00 -code_collage 00000000 -code_meli 000000 -address "آدرس محل کارآموزی"
 ```
 
 
