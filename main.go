@@ -113,6 +113,7 @@ func main() {
 		document.querySelector("#lat").value="%f"
 		document.querySelector("#len").value="%f"
 		document.querySelector("#main-wrapper > div > div.container-fluid > div:nth-child(1) > div > div > form > div > div > div > fieldset > div > div:nth-child(1) > button").click()
+		document.querySelector("#myModal4 > div > div > div.modal-footer > div:nth-child(1) > button").click()
 	}`, *user_address, *user_latitude, *user_longitude)).ByUser())
 	w()
 
@@ -162,27 +163,13 @@ func main() {
 		if status_gozaresh == "true" {
 			gologger.Info().Msg("Gozaresh Done ... !")
 
-			reader := bufio.NewReader(os.Stdin)
-
-			gologger.Warning().Msg("Press Enter to Exit ... !")
-
-			// Loop indefinitely until the user presses Enter
-			for {
-				_, err := reader.ReadString('\n')
-				if err != nil {
-					gologger.Fatal().Msg("Error reading input: " + err.Error())
-					os.Exit(1)
-				}
-				gologger.Info().Msg("Exiting ... ")
-				// Add any cleanup tasks here if needed
-				os.Exit(0)
-			}
-
 		} else {
-			gologger.Fatal().Msg("Error in gozaresh")
+			gologger.Error().Msg("Error in gozaresh")
+			exit_app()
 		}
 	} else {
-		gologger.Fatal().Msg("Error in hozor")
+		gologger.Error().Msg("Error in hozor")
+		exit_app()
 	}
 }
 
@@ -197,6 +184,24 @@ func getLastIndex() int {
 
 	i, _ := strconv.Atoi(d)
 	return i
+}
+
+func exit_app() {
+	reader := bufio.NewReader(os.Stdin)
+
+	gologger.Warning().Msg("Press Enter to Exit ... !")
+
+	// Loop indefinitely until the user presses Enter
+	for {
+		_, err := reader.ReadString('\n')
+		if err != nil {
+			gologger.Fatal().Msg("Error reading input: " + err.Error())
+			os.Exit(1)
+		}
+		gologger.Info().Msg("Exiting ... ")
+		// Add any cleanup tasks here if needed
+		os.Exit(0)
+	}
 }
 
 // Function to save the last used index

@@ -21,7 +21,7 @@ func OpenBrowser() (*rod.Browser, *rod.Page) {
 		Set("ignore-certificate-errors", "1").
 		Set("disable-crash-reporter", "true").
 		Set("disable-notifications", "true").
-		Set("hide-scrollbars", "true").
+		Set("hide-scrollbars", "false").
 		// Set("window-size", fmt.Sprintf("%d,%d", 2000, 1920)).
 		Set("mute-audio", "true").
 		Set("incognito", "true").
