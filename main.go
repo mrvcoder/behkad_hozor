@@ -93,6 +93,13 @@ func main() {
 	w()
 	gologger.Info().Msg("Logged in behkad ... !")
 
+	// hijack the popups
+	_ = page.MustEvaluate(rod.Eval(`() => {
+		window.confirm=function(){ return true; };
+		window.alert=function(){ return true; };
+		window.prompt=function(){ return "textOfMyChoice"; };
+	}`).ByUser())
+
 	proto.BrowserGrantPermissions{
 		Permissions: []proto.BrowserPermissionType{
 			proto.BrowserPermissionTypeSensors,
