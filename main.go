@@ -89,7 +89,10 @@ func main() {
 		document.querySelector("#user").value="%s"
 		document.querySelector("#pass").value="%s"
 		document.querySelector("#hero > div > div > div.col-md-5 > form > div:nth-child(11) > button.btn-get-started.login-user").click()
-	}`, *user_code_collage, *user_code_meli)).ByUser())
+		window.confirm=function(){ return true; };
+		window.alert=function(){ return true; };
+		window.prompt=function(){ return "textOfMyChoice"; };
+		}`, *user_code_collage, *user_code_meli)).ByUser())
 	w()
 	gologger.Info().Msg("Logged in behkad ... !")
 
