@@ -13,7 +13,7 @@ func OpenBrowser() (*rod.Browser, *rod.Page) {
 	// Headless runs the browser on foreground, you can also use flag "-rod=show"
 	// Devtools opens the tab in each new tab opened automatically
 	l := launcher.New().
-		Headless(true).
+		Headless(false).
 		Devtools(false).
 		NoSandbox(true).
 		Set("disable-gpu", "true").
@@ -58,6 +58,12 @@ func Brows(myurl string, browser *rod.Browser, page *rod.Page) *rod.Page {
 
 	page.MustSetExtraHeaders("User-Agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/115.0.0.0 Safari/537.36")
 	// Eval js on the page
+
+	// Evaluates given script in every frame upon creation
+	// Disable all alerts by making window.alert no-op.
+	page.MustEvalOnNewDocument(`window.alert = () => {}`)
+	page.MustEvalOnNewDocument(`window.prompt = () => {}`)
+	page.MustEvalOnNewDocument(`window.confirm = () => {}`)
 
 	err := page.Timeout(time.Duration(10) * time.Second).Navigate(myurl)
 	Delay(time.Duration(10))

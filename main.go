@@ -82,26 +82,6 @@ func main() {
 
 	browser, page := OpenBrowser()
 	page = Brows(url, browser, page)
-	w := page.MustWaitRequestIdle()
-	gologger.Info().Msg("Loggin in behkad ... ")
-	// login
-	_ = page.MustEvaluate(rod.Eval(fmt.Sprintf(`() => {
-		document.querySelector("#user").value="%s"
-		document.querySelector("#pass").value="%s"
-		document.querySelector("#hero > div > div > div.col-md-5 > form > div:nth-child(11) > button.btn-get-started.login-user").click()
-		window.confirm=function(){ return true; };
-		window.alert=function(){ return true; };
-		window.prompt=function(){ return "textOfMyChoice"; };
-		}`, *user_code_collage, *user_code_meli)).ByUser())
-	w()
-	gologger.Info().Msg("Logged in behkad ... !")
-
-	// hijack the popups
-	_ = page.MustEvaluate(rod.Eval(`() => {
-		window.confirm=function(){ return true; };
-		window.alert=function(){ return true; };
-		window.prompt=function(){ return "textOfMyChoice"; };
-	}`).ByUser())
 
 	proto.BrowserGrantPermissions{
 		Permissions: []proto.BrowserPermissionType{
@@ -115,6 +95,27 @@ func main() {
 		Latitude:  user_latitude,
 		Longitude: user_longitude,
 	}.Call(page)
+
+	w := page.MustWaitRequestIdle()
+	gologger.Info().Msg("Loggin in behkad ... ")
+	// login
+	_ = page.MustEvaluate(rod.Eval(fmt.Sprintf(`() => {
+		document.querySelector("#user").value="%s"
+		document.querySelector("#pass").value="%s"
+		document.querySelector("#hero > div > div > div.col-md-5 > form > div:nth-child(11) > button.btn-get-started.login-user").click()
+		window.confirm=function(){ return true; };
+		window.alert=function(){ return true; };
+		window.prompt=function(){ return "textOfMyChoice"; };
+		}`, *user_code_collage, *user_code_meli)).ByUser())
+	w()
+
+	// hijack the popups
+	_ = page.MustEvaluate(rod.Eval(`() => {
+		window.confirm=function(){ return true; };
+		window.alert=function(){ return true; };
+		window.prompt=function(){ return "textOfMyChoice"; };
+	}`).ByUser())
+	gologger.Info().Msg("Logged in behkad ... !")
 
 	// hozor
 	w = page.MustWaitRequestIdle()
