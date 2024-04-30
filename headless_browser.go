@@ -13,7 +13,7 @@ func OpenBrowser() (*rod.Browser, *rod.Page) {
 	// Headless runs the browser on foreground, you can also use flag "-rod=show"
 	// Devtools opens the tab in each new tab opened automatically
 	l := launcher.New().
-		Headless(false).
+		Headless(true).
 		Devtools(false).
 		NoSandbox(true).
 		Set("disable-gpu", "true").
