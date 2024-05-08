@@ -128,9 +128,11 @@ func main() {
 	}`, *user_address, *user_latitude, *user_longitude)).ByUser())
 	w()
 
+	page.Timeout(time.Duration(10) * time.Second)
+	Delay(time.Duration(10))
 	// check hozor
 	d := page.MustEvaluate(rod.Eval(`() => {
-		if(document.querySelector("#myModal4 > div > div > div.modal-body.h4.text-dark > form > div:nth-child(2) > div > div").innerText.search("موفقیت")>0){
+		if(document.querySelector("#myModal4 > div > div > div.modal-body.h4.text-dark > form > div:nth-child(2) > div > div").innerText.search("موفقیت")>0 || document.querySelector("#myModal4 > div > div > div.modal-body.h4.text-dark > form > div:nth-child(2) > div > div").innerText.search("ثبت شد")>0){
 			return true
 		}else{
 			return false
@@ -159,7 +161,8 @@ func main() {
 			document.querySelector("#myModal1 > div > div > div.modal-body.h4.text-dark > form > div.modal-footer > button").click()
 		}`).ByUser())
 		w()
-
+		page.Timeout(time.Duration(10) * time.Second)
+		Delay(time.Duration(10))
 		// check gozarersh
 		d := page.MustEvaluate(rod.Eval(`() => {
 			if(document.querySelector("#myModal4 > div > div > div.modal-body.h4.text-dark > form > div:nth-child(2) > div > div").innerText.search("ثبت شد")>0 || document.querySelector("#myModal4 > div > div > div.modal-body.h4.text-dark > form > div:nth-child(2) > div > div").innerText.search("موفقیت")>0){
