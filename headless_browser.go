@@ -14,7 +14,7 @@ func OpenBrowser() (*rod.Browser, *rod.Page) {
 	// Devtools opens the tab in each new tab opened automatically
 	l := launcher.New().
 		Headless(true).
-		Devtools(false).
+		Devtools(false). 
 		NoSandbox(true).
 		Set("disable-gpu", "true").
 		Set("ignore-certificate-errors", "true").
