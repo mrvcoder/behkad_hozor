@@ -116,9 +116,13 @@ func main() {
 		window.prompt=function(){ return "textOfMyChoice"; };
 	}`).ByUser())
 	gologger.Info().Msg("Logged in behkad ... !")
-
+	page.Timeout(time.Duration(10) * time.Second)
+	Delay(time.Duration(10))
 	// hozor
 	w = page.MustWaitRequestIdle()
+	_ = page.MustEvaluate(rod.Eval(fmt.Sprintf(`() => {
+		document.querySelector("#myModal4").click()
+	}`)).ByUser())
 	_ = page.MustEvaluate(rod.Eval(fmt.Sprintf(`() => {
 		document.querySelector("#adress").value="%s"
 		document.querySelector("#lat").value="%f"
