@@ -14,7 +14,7 @@ func OpenBrowser() (*rod.Browser, *rod.Page) {
 	// Devtools opens the tab in each new tab opened automatically
 	l := launcher.New().
 		Headless(true).
-		Devtools(false). 
+		Devtools(false).
 		NoSandbox(true).
 		Set("disable-gpu", "true").
 		Set("ignore-certificate-errors", "true").
@@ -45,16 +45,16 @@ func OpenBrowser() (*rod.Browser, *rod.Page) {
 	// launcher.Open(browser.ServeMonitor(""))
 
 	// defer browser.MustClose()
-	gologger.Info().Msg("Broswer Opened Successfully !")
+	gologger.Info().Msg("Browser Opened Successfully !")
 	return browser, page
 }
 
 func CloseBrowser(browser *rod.Browser) {
 	browser.MustClose()
-	gologger.Info().Msg("Broswer Closed Successfully !")
+	gologger.Info().Msg("Browser Closed Successfully !")
 }
 
-func Brows(myurl string, browser *rod.Browser, page *rod.Page) *rod.Page {
+func Brows(myUrl string, browser *rod.Browser, page *rod.Page) *rod.Page {
 
 	page.MustSetExtraHeaders("User-Agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/115.0.0.0 Safari/537.36")
 	// Eval js on the page
@@ -65,7 +65,7 @@ func Brows(myurl string, browser *rod.Browser, page *rod.Page) *rod.Page {
 	page.MustEvalOnNewDocument(`window.prompt = () => {}`)
 	page.MustEvalOnNewDocument(`window.confirm = () => {}`)
 
-	err := page.Timeout(time.Duration(10) * time.Second).Navigate(myurl)
+	err := page.Timeout(time.Duration(10) * time.Second).Navigate(myUrl)
 	Delay(time.Duration(10))
 
 	if err != nil && timeout_errors_counts < *max_timeout_counts {
@@ -73,7 +73,7 @@ func Brows(myurl string, browser *rod.Browser, page *rod.Page) *rod.Page {
 		gologger.Info().Msg("Trying again ...")
 		Delay(time.Duration(15))
 		timeout_errors_counts += 1
-		Brows(myurl, browser, page)
+		Brows(myUrl, browser, page)
 	} else if err != nil {
 		gologger.Fatal().Msg("max retry exceed ! exiting...")
 		fmt.Println(err.Error())

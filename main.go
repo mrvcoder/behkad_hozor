@@ -13,6 +13,7 @@ import (
 
 	"github.com/go-rod/rod"
 	"github.com/go-rod/rod/lib/proto"
+	tgbotapi "github.com/go-telegram-bot-api/telegram-bot-api/v5"
 	"github.com/jszwec/csvutil"
 	"github.com/projectdiscovery/gologger"
 	"github.com/projectdiscovery/gologger/levels"
@@ -27,6 +28,8 @@ var (
 	max_timeout_counts    = flag.Int("max_timeout_errors", 2, "Max timeout errors count to retry")
 	timeout_errors_counts = 0
 	lastIndexFile         = "last_index.txt"
+	ApiKey                = "7276822555:AAHE9G0cv6kIHBxF5YqoHzTVKVWJvSsgfxI"
+	telegramUserId        = 74293136
 )
 
 type Reports struct {
@@ -90,7 +93,7 @@ func main() {
 			proto.BrowserPermissionTypeAccessibilityEvents},
 	}.Call(page)
 
-	// over write gps
+	// overwrite gps
 	proto.EmulationSetGeolocationOverride{
 		Latitude:  user_latitude,
 		Longitude: user_longitude,
@@ -167,7 +170,7 @@ func main() {
 		w()
 		page.Timeout(time.Duration(10) * time.Second)
 		Delay(time.Duration(10))
-		// check gozarersh
+		// check gozaresh
 		d := page.MustEvaluate(rod.Eval(`() => {
 			if(document.querySelector("#myModal4 > div > div > div.modal-body.h4.text-dark > form > div:nth-child(2) > div > div").innerText.search("ثبت شد")>0 || document.querySelector("#myModal4 > div > div > div.modal-body.h4.text-dark > form > div:nth-child(2) > div > div").innerText.search("موفقیت")>0){
 				return true
@@ -177,17 +180,17 @@ func main() {
 		}`).ByUser())
 
 		out := strings.TrimSpace(d.Value.String())
-		status_gozaresh := string(out)
-		if status_gozaresh == "true" {
+		statusGozaresh := string(out)
+		if statusGozaresh == "true" {
 			gologger.Info().Msg("Gozaresh Done ... !")
-
+			sendSuccessMessageInTelegramBot(int64(telegramUserId), "حضور برای کاربر با کد ملی "+string(*user_code_meli)+" ثبت شد")
 		} else {
 			gologger.Error().Msg("Error in gozaresh")
-			exit_app()
+			exitApp()
 		}
 	} else {
 		gologger.Error().Msg("Error in hozor")
-		exit_app()
+		exitApp()
 	}
 }
 
@@ -204,7 +207,7 @@ func getLastIndex() int {
 	return i
 }
 
-func exit_app() {
+func exitApp() {
 	reader := bufio.NewReader(os.Stdin)
 
 	gologger.Warning().Msg("Press Enter to Exit ... !")
@@ -250,4 +253,23 @@ func getRandomIndex(maxLength, lastIndex int) int {
 		}
 	}
 	return randomIndex
+}
+
+func sendSuccessMessageInTelegramBot(telegramUserId int64, message string) {
+	gologger.Info().Msg("sending success message to telegram bot ... !")
+	bot, err := tgbotapi.NewBotAPI(ApiKey)
+	if err != nil {
+		gologger.Error().Msg("Error sending success message in telegram" + err.Error())
+		exitApp()
+	}
+
+	bot.Debug = false
+
+	// send message to user
+	msg := tgbotapi.NewMessage(telegramUserId, message)
+	_, err = bot.Send(msg)
+	if err != nil {
+		gologger.Error().Msg("Error sending success message in telegram")
+	}
+	gologger.Info().Msg("Sent success message to telegram bot ... !")
 }

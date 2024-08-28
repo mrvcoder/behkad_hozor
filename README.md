@@ -10,12 +10,12 @@
 قبل از اجرا حتما فایل `gozareshat.csv` را با یک تکست ادیتور ویرایش کنید
 توجه کنید که توسط برنامه اکسل ادیت نزنید !
 
-```
+```bash
 ./behkad_linux -latitude 0.00 -longitude 0.00 -code_collage 00000000 -code_meli 000000 -address "آدرس محل کارآموزی"
 ```
 
 
-```
+```bash
 behkad_windows.exe -latitude 0.00 -longitude 0.00 -code_collage 00000000 -code_meli 000000 -address "آدرس محل کارآموزی"
 ```
 
@@ -24,3 +24,37 @@ behkad_windows.exe -latitude 0.00 -longitude 0.00 -code_collage 00000000 -code_m
 - code_collage: (نام کاربری)کد دانشجو
 - code_meli: کد ملی (رمزعبور)
 - address: آدرس محل کارآموزی
+
+<hr>
+
+## run in linux server with crontab(optional)
+
+برای اینکه خودتون هر روز دستی این اسکریپت رو ران نکنین، میتونین با استفاده از یک سرور لینوکس این کارو کاملا اتومات کنین :)
+
+با استفاده از این دستور وارد تنظیمات ابزار می‌شوید
+
+```bash
+crontab -e
+```
+
+اگر برای اولین بار این ابزار رو باز میکنین ازتون میپرسه با کدوم ادیتور بازش کنم
+<br>
+عدد 1 رو بزنین و وارد ادیتور بشین و در آخرین خط آن فایل این دستور رو قرار بدین:
+
+```bash
+0 7 * * * bash /path/to/behkad_hozor/script.sh
+```
+
+به جای `/path/to/behkad_hozor/script.sh` مسیری که پروژه را کلون کردین رو وارد کنین
+
+و به ترتیب کلید های
+<br>
+`Ctrl + X`
+<br>
+`Y`
+<br>
+`Enter`
+<br>
+را وارد کنین
+
+با این کار هر روز ساعت ۷ صبح اسکریپت اجرا شده و حضور رو ثبت خواهد کرد.
