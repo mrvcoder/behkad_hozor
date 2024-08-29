@@ -1,0 +1,29 @@
+{
+  "telegram": {
+    "useBot": true,
+    "ApiKey": "your API key here",
+    "telegramUserId": 10000000
+  },
+  "behkad": {
+    "codeMelli": "کد ملی",
+    "codeCollege": "کد دانشجویی",
+    "address": "آدرس محل کارآموزی",
+    "latitude":  0,
+    "longitude": 0
+  },
+  "gozareshat": [
+    "گزارش 1",
+    "گزارش 2",
+    "گزارش 3",
+    "گزارش 4",
+    "گزارش 5",
+    "گزارش 6",
+    "گزارش 7",
+    "گزارش 8",
+    "گزارش 9",
+    "گزارش 10"
+  ],
+  "lastIndex": 0,
+  "maxTimeoutCounts": 2,
+  "timeoutErrorsCounts": 0
+}
