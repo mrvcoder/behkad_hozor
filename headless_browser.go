@@ -68,15 +68,16 @@ func Brows(myUrl string, browser *rod.Browser, page *rod.Page) *rod.Page {
 	err := page.Timeout(time.Duration(10) * time.Second).Navigate(myUrl)
 	Delay(time.Duration(10))
 
-	if err != nil && timeout_errors_counts < *max_timeout_counts {
+	if err != nil && config.TimeoutErrorsCounts < config.MaxTimeoutCounts {
 		gologger.Warning().Msg("Error in loading Behkad website ! ")
 		gologger.Info().Msg("Trying again ...")
 		Delay(time.Duration(15))
-		timeout_errors_counts += 1
+		config.TimeoutErrorsCounts += 1
 		Brows(myUrl, browser, page)
 	} else if err != nil {
 		gologger.Fatal().Msg("max retry exceed ! exiting...")
 		fmt.Println(err.Error())
+		sendMessageToTelegramBot(config.Telegram.TelegramUserId, "سایت بهکاد به مشکل خورده، **حضور ثبت نشد**/nلطفا بعد از گذشت چند دقیقه اسکریپت را دوباره اچرا کنید.")
 	}
 	// Eval js on the page
 	page.Timeout(time.Duration(10) * time.Second)

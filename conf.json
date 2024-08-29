@@ -1,6 +1,6 @@
 {
   "telegram": {
-    "useBot": true,
+    "useBot": false,
     "ApiKey": "your API key here",
     "telegramUserId": 10000000
   },

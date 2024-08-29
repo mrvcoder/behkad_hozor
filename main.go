@@ -1,83 +1,90 @@
 package main
 
 import (
-	"bufio"
-	"flag"
+	"encoding/json"
 	"fmt"
+	tgbotapi "github.com/go-telegram-bot-api/telegram-bot-api/v5"
 	"io/ioutil"
 	"math/rand"
 	"os"
-	"strconv"
 	"strings"
 	"time"
 
 	"github.com/go-rod/rod"
 	"github.com/go-rod/rod/lib/proto"
-	tgbotapi "github.com/go-telegram-bot-api/telegram-bot-api/v5"
-	"github.com/jszwec/csvutil"
 	"github.com/projectdiscovery/gologger"
 	"github.com/projectdiscovery/gologger/levels"
 )
 
-var (
-	user_latitude         = flag.Float64("latitude", 0, "Latitude")
-	user_longitude        = flag.Float64("longitude", 0, "longitude")
-	user_code_meli        = flag.String("code_meli", "", "code meli user")
-	user_code_collage     = flag.String("code_collage", "", "code collage user")
-	user_address          = flag.String("address", "", "hozor address")
-	max_timeout_counts    = flag.Int("max_timeout_errors", 2, "Max timeout errors count to retry")
-	timeout_errors_counts = 0
-	lastIndexFile         = "last_index.txt"
-	ApiKey                = "7276822555:AAHE9G0cv6kIHBxF5YqoHzTVKVWJvSsgfxI"
-	telegramUserId        = 74293136
-)
+type TelegramConfig struct {
+	UseBot         bool   `json:"useBot"`
+	ApiKey         string `json:"ApiKey"`
+	TelegramUserId int64  `json:"telegramUserId"`
+}
 
-type Reports struct {
-	Dsc string `csv:"dsc"`
+type BehkadConfig struct {
+	CodeMelli   string  `json:"codeMelli"`
+	CodeCollege string  `json:"codeCollege"`
+	Address     string  `json:"address"`
+	Latitude    float64 `json:"latitude"`
+	Longitude   float64 `json:"longitude"`
+}
+
+type Config struct {
+	Telegram            TelegramConfig `json:"telegram"`
+	Behkad              BehkadConfig   `json:"behkad"`
+	Gozareshat          []string       `json:"gozareshat"`
+	LastIndex           int            `json:"lastIndex"`
+	MaxTimeoutCounts    int            `json:"maxTimeoutCounts"`
+	TimeoutErrorsCounts int            `json:"timeoutErrorsCounts"`
+}
+
+var config *Config
+
+// LoadConfig load 'conf.json' file data
+func LoadConfig() error {
+	file, err := os.Open("conf.json")
+	if err != nil {
+		return err
+	}
+	defer file.Close()
+
+	data, err := ioutil.ReadAll(file)
+	if err != nil {
+		return err
+	}
+
+	config = &Config{}
+	if err := json.Unmarshal(data, config); err != nil {
+		return err
+	}
+
+	return nil
 }
 
 func main() {
 	gologger.DefaultLogger.SetMaxLevel(levels.LevelDebug)
-	// check required flags
-	flag.Parse()
-	required := []string{"latitude", "longitude", "code_meli", "address"}
-	flag.Parse()
 
-	seen := make(map[string]bool)
-	flag.Visit(func(f *flag.Flag) { seen[f.Name] = true })
-	for _, req := range required {
-		if !seen[req] {
-			// or possibly use `log.Fatalf` instead of:
-			gologger.Fatal().Msg(fmt.Sprintf("missing required -%s argument/flag\n", req))
-			os.Exit(2) // the same exit code flag.Parse uses
-		}
+	// load config data
+	if err := LoadConfig(); err != nil {
+		gologger.Fatal().Msg("Error loading config: " + err.Error())
 	}
 
 	url := "https://behkad.tvu.ac.ir/login.php"
 
-	// read & parse csv
-	currentContent, err := ioutil.ReadFile("./gozareshat.csv")
-	if err != nil {
-		gologger.Fatal().Msg("Error in Reading gozareshat.csv file : " + err.Error())
-	}
-	var reports []Reports
-	if err := csvutil.Unmarshal(currentContent, &reports); err != nil {
-		gologger.Fatal().Msg("Error in Parsing gozareshat.csv file : " + err.Error())
-	}
-	if len(reports) < 10 {
+	// at least 10 reports required
+	if len(config.Gozareshat) < 10 {
 		gologger.Fatal().Msg("Please write at least 10 gozaresh !")
 	}
 
 	// Seed the random number generator
 	rand.Seed(time.Now().UnixNano())
-	// Get the last used index
-	lastIndex := getLastIndex()
 	// Generate a random index different from the last used one
-	randomIndex := getRandomIndex(len(reports), lastIndex)
+	randomIndex := getRandomIndex(len(config.Gozareshat), config.LastIndex)
 	// Retrieve the random report
-	randomReport := reports[randomIndex]
+	randomReport := config.Gozareshat[randomIndex]
 	// Save the last used index
-	err = saveLastIndex(randomIndex)
+	err := updateLastIndex(randomIndex)
 	if err != nil {
 		fmt.Println("Error:", err)
 		os.Exit(1)
@@ -95,12 +102,12 @@ func main() {
 
 	// overwrite gps
 	proto.EmulationSetGeolocationOverride{
-		Latitude:  user_latitude,
-		Longitude: user_longitude,
+		Latitude:  &config.Behkad.Latitude,
+		Longitude: &config.Behkad.Longitude,
 	}.Call(page)
 
 	w := page.MustWaitRequestIdle()
-	gologger.Info().Msg("Loggin in behkad ... ")
+	gologger.Info().Msg("Logging in behkad ... ")
 	// login
 	_ = page.MustEvaluate(rod.Eval(fmt.Sprintf(`() => {
 		document.querySelector("#user").value="%s"
@@ -109,7 +116,7 @@ func main() {
 		window.confirm=function(){ return true; };
 		window.alert=function(){ return true; };
 		window.prompt=function(){ return "textOfMyChoice"; };
-		}`, *user_code_collage, *user_code_meli)).ByUser())
+		}`, config.Behkad.CodeCollege, config.Behkad.CodeMelli)).ByUser())
 	w()
 
 	// hijack the popups
@@ -132,7 +139,7 @@ func main() {
 		document.querySelector("#len").value="%f"
 		document.querySelector("#main-wrapper > div > div.container-fluid > div:nth-child(1) > div > div > form > div > div > div > fieldset > div > div:nth-child(1) > button").click()
 		document.querySelector("#myModal4 > div > div > div.modal-footer > div:nth-child(1) > button").click()
-	}`, *user_address, *user_latitude, *user_longitude)).ByUser())
+	}`, config.Behkad.Address, config.Behkad.Latitude, config.Behkad.Longitude)).ByUser())
 	w()
 
 	page.Timeout(time.Duration(10) * time.Second)
@@ -145,9 +152,8 @@ func main() {
 			return false
 		}
 	}`).ByUser())
-	out := strings.TrimSpace(d.Value.String())
-	status_hozor := string(out)
-	if status_hozor == "true" {
+	statusHozor := strings.TrimSpace(d.Value.String())
+	if statusHozor == "true" {
 		gologger.Info().Msg("hozor Done ... !")
 		page.Timeout(time.Duration(3) * time.Second)
 		Delay(time.Duration(3))
@@ -157,12 +163,12 @@ func main() {
 			document.querySelector("#myModal4 > div > div > div.modal-header > button").click()
 		}`).ByUser())
 
-		gologger.Info().Msg("Submiting Gozaresh ... !")
+		gologger.Info().Msg("Submitting Gozaresh ... !")
 		// sabt gozaresh
 		page.MustEvaluate(rod.Eval(fmt.Sprintf(`() => {
 			document.querySelector("#res-hzor > div:nth-child(1) > div > div:nth-child(1) > div.col-md-4.btn-action-user > button").click()
 			document.querySelector("#myModal1 > div > div > div.modal-body.h4.text-dark > form > textarea").value="%s"
-		}`, randomReport.Dsc)).ByUser())
+		}`, randomReport)).ByUser())
 		w = page.MustWaitRequestIdle()
 		page.MustEvaluate(rod.Eval(`() => {
 			document.querySelector("#myModal1 > div > div > div.modal-body.h4.text-dark > form > div.modal-footer > button").click()
@@ -179,61 +185,37 @@ func main() {
 			}
 		}`).ByUser())
 
-		out := strings.TrimSpace(d.Value.String())
-		statusGozaresh := string(out)
+		statusGozaresh := strings.TrimSpace(d.Value.String())
 		if statusGozaresh == "true" {
 			gologger.Info().Msg("Gozaresh Done ... !")
-			sendSuccessMessageInTelegramBot(int64(telegramUserId), "حضور برای کاربر با کد ملی "+string(*user_code_meli)+" ثبت شد")
+			sendMessageToTelegramBot(config.Telegram.TelegramUserId, "حضور برای کاربر با کد ملی "+config.Behkad.CodeMelli+" ثبت شد")
 		} else {
 			gologger.Error().Msg("Error in gozaresh")
+			sendMessageToTelegramBot(config.Telegram.TelegramUserId, "گزارش شما ثبت نشد. لطفا بررسی نمایید")
 			exitApp()
 		}
 	} else {
 		gologger.Error().Msg("Error in hozor")
+		sendMessageToTelegramBot(config.Telegram.TelegramUserId, "حضور شما ثبت نشد. لطفا بررسی نمایید")
 		exitApp()
 	}
 }
 
-// Function to get the last used index
-func getLastIndex() int {
-	currentContent, _ := ioutil.ReadFile(lastIndexFile)
-
-	d := string(currentContent)
-	if d == "" {
-		return 0
-	}
-
-	i, _ := strconv.Atoi(d)
-	return i
-}
-
 func exitApp() {
-	reader := bufio.NewReader(os.Stdin)
-
-	gologger.Warning().Msg("Press Enter to Exit ... !")
-
-	// Loop indefinitely until the user presses Enter
-	for {
-		_, err := reader.ReadString('\n')
-		if err != nil {
-			gologger.Fatal().Msg("Error reading input: " + err.Error())
-			os.Exit(1)
-		}
-		gologger.Info().Msg("Exiting ... ")
-		// Add any cleanup tasks here if needed
-		os.Exit(0)
-	}
+	gologger.Info().Msg("Exiting ... ")
+	os.Exit(0)
 }
 
-// Function to save the last used index
-func saveLastIndex(index int) error {
-	file, err := os.Create(lastIndexFile)
+// Function to update the last used index
+func updateLastIndex(newIndex int) error {
+	config.LastIndex = newIndex
+
+	data, err := json.MarshalIndent(config, "", "  ")
 	if err != nil {
 		return err
 	}
-	defer file.Close()
 
-	_, err = fmt.Fprintf(file, "%d", index)
+	err = ioutil.WriteFile("conf.json", data, 0644)
 	if err != nil {
 		return err
 	}
@@ -255,21 +237,23 @@ func getRandomIndex(maxLength, lastIndex int) int {
 	return randomIndex
 }
 
-func sendSuccessMessageInTelegramBot(telegramUserId int64, message string) {
-	gologger.Info().Msg("sending success message to telegram bot ... !")
-	bot, err := tgbotapi.NewBotAPI(ApiKey)
-	if err != nil {
-		gologger.Error().Msg("Error sending success message in telegram" + err.Error())
-		exitApp()
-	}
+func sendMessageToTelegramBot(telegramUserId int64, message string) {
+	if config.Telegram.UseBot {
+		gologger.Info().Msg("Sending message to telegram bot ... !")
+		bot, err := tgbotapi.NewBotAPI(config.Telegram.ApiKey)
+		if err != nil {
+			gologger.Error().Msg("Error sending message in telegram: " + err.Error())
+			exitApp()
+		}
 
-	bot.Debug = false
+		bot.Debug = false
 
-	// send message to user
-	msg := tgbotapi.NewMessage(telegramUserId, message)
-	_, err = bot.Send(msg)
-	if err != nil {
-		gologger.Error().Msg("Error sending success message in telegram")
+		// send message to user
+		msg := tgbotapi.NewMessage(telegramUserId, message)
+		_, err = bot.Send(msg)
+		if err != nil {
+			gologger.Error().Msg("Error sending message to telegram bot")
+		}
+		gologger.Info().Msg("Message sent to telegram bot ... !")
 	}
-	gologger.Info().Msg("Sent success message to telegram bot ... !")
 }
